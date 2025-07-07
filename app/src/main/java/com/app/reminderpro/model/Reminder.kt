@@ -9,6 +9,6 @@ data class Reminder(
     val title: String,
     val description: String,
     val startTime: Long,
-    val endTime: Long,
+    val endTime: Long?,
     val repeatMode: RepeatMode = RepeatMode.ONCE
 )
