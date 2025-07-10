@@ -17,6 +17,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.app.reminderpro.model.Reminder
 import com.app.reminderpro.model.ReminderViewModel
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.drawscope.clipPath // Import clipPath
+import androidx.compose.ui.graphics.Path // Import Path
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.FlowRow
+
+
 // Make sure RepeatMode is available if AddReminderDialog from the other file needs it directly,
 // though it's passed as a parameter so direct import here might not be strictly needed for this file.
 // import com.app.reminderpro.model.RepeatMode
@@ -36,20 +56,154 @@ fun ReminderListScreen(
     var showDialog by remember { mutableStateOf(false) }
     var reminderToEdit by remember { mutableStateOf<Reminder?>(null) }
 
+    // ADD THE FILTER STATE HERE
+    var selectedCategory by remember { mutableStateOf("All") }
+    val categories = listOf("All", "Personal", "Work", "Health", "Finance")
+    var expanded by remember { mutableStateOf(false) }
+
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                reminderToEdit = null
-                showDialog = true
-            }) {
+            FloatingActionButton(
+                onClick = {
+                    reminderToEdit = null
+                    showDialog = true
+                },
+                containerColor = Color(0xFF8E24AA), // Purple background
+                contentColor = Color.White // Optional: sets icon tint
+            ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Reminder")
             }
         },
         topBar = {
-            TopAppBar(title = { Text("Your Reminders") })
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Remindzy",
+                        color = Color.White
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF8E24AA) // Purple background
+                )
+            )
         }
+
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF9FAFB))
+                .padding(paddingValues)
+        ) {
+
+            //  Category Filter UI - INSERT HERE
+            /*Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Filter by: ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF1A1A1A), // strong dark gray
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Box {
+                    Button(onClick = { expanded = true }) {
+                        Text(selectedCategory)
+                    }
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category) },
+                                onClick = {
+                                    selectedCategory = category
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }*/
+            // 🔄 Replace your current "Category Filter UI" with this:
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = "Filter by:",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Color(0xFF1A1A1A), // Dark gray
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    categories.forEach { category ->
+                        AssistChip(
+                            onClick = {
+                                selectedCategory = category
+                            },
+                            label = {
+                                Text(
+                                    text = category,
+                                    color = if (selectedCategory == category) Color.White else Color(0xFF4A148C)
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = if (selectedCategory == category)
+                                    Color(0xFF8E24AA) // Selected = dark purple
+                                else
+                                    Color(0xFFEDE7F6) // Unselected = light purple
+                            )
+                        )
+                    }
+                }
+            }
+
+
+            //  Then your filtered list logic follows
+            val filteredReminders = if (selectedCategory == "All") {
+                reminders
+            } else {
+                reminders.filter { it.category.equals(selectedCategory, ignoreCase = true) }
+            }
+
+            if (filteredReminders.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No reminders yet. Add one!")
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(all = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(filteredReminders, key = { it.id }) { reminder ->
+                        ReminderItem(
+                            reminder = reminder,
+                            onEdit = {
+                                reminderToEdit = it
+                                showDialog = true
+                            },
+                            onDelete = {
+                                viewModel.deleteReminder(it)
+                            }
+                        )
+                    }
+                }
+            }
+
+
             if (reminders.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -108,6 +262,8 @@ fun ReminderListScreen(
     }
 }
 
+//The below commented lines can be removed if the new @composable function is working
+/*
 @Composable
 fun ReminderItem(
     reminder: Reminder,
@@ -173,4 +329,300 @@ fun ReminderItem(
 // Ensure the DUMMY AddReminderDialog that was previously here IS DELETED.
 // The actual AddReminderDialog should reside in its own file (AddReminderDialog.kt)
 // and have the updated implementation we worked on.
+*/
+
+
+// working version with straight orange bar line on the left
+
+@Composable
+fun ReminderItem(
+    reminder: Reminder,
+    onEdit: (Reminder) -> Unit,
+    onDelete: (Reminder) -> Unit
+) {
+    val simpleDateFormatter = remember {
+        SimpleDateFormat("EEE, MMM d, yyyy 'at' h:mm a", Locale.getDefault())
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onEdit(reminder) },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp)) //  Clip the whole row to match card corners
+                .height(IntrinsicSize.Min) //  KEY LINE to force full height for border
+        ) {
+
+            //  Left vertical colored bar
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)) //  Rounded corners on left only
+                    .background(Color(0xFFFF7043)) // Orange
+            )
+
+            //  Main content
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = reminder.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(0xFF1A1A1A) // dark gray for better contrast
+                    )
+
+                    if (reminder.description.isNotBlank()) {
+                        Text(
+                            text = reminder.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF3C3C3C)
+                        )
+                    }
+
+                    if (reminder.category.isNotBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 6.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFD1C4E9))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = reminder.category,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFF4A148C)
+                            )
+                        }
+                    }
+
+                    val formattedStartTime = remember(reminder.startTime) {
+                        try {
+                            simpleDateFormatter.format(Date(reminder.startTime))
+                        } catch (e: Exception) {
+                            "Invalid start date"
+                        }
+                    }
+                    Text(
+                        text = "Starts: $formattedStartTime",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF3C3C3C)
+                    )
+
+                    reminder.endTime?.let { endTimeValue ->
+                        val formattedEndTime = remember(endTimeValue) {
+                            try {
+                                simpleDateFormatter.format(Date(endTimeValue))
+                            } catch (e: Exception) {
+                                "Invalid end date"
+                            }
+                        }
+                        Text(
+                            text = "Ends: $formattedEndTime",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF3C3C3C)
+                        )
+                    }
+
+                    Text(
+                        text = "Repeat: ${reminder.repeatMode.name}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF3C3C3C)
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { onEdit(reminder) }) {
+                        Icon(Icons.Filled.Edit, contentDescription = "Edit Reminder")
+                    }
+                    IconButton(onClick = { onDelete(reminder) }) {
+                        Icon(Icons.Filled.Delete, contentDescription = "Delete Reminder")
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+/*
+@Composable
+fun ReminderItem(
+    reminder: Reminder,
+    onEdit: (Reminder) -> Unit,
+    onDelete: (Reminder) -> Unit
+) {
+    val simpleDateFormatter = remember {
+        SimpleDateFormat("EEE, MMM d, yyyy 'at' h:mm a", Locale.getDefault())
+    }
+    val cardCornerRadiusDp = 16.dp
+    val lineThicknessDp = 6.dp // Thickness of the orange line
+    val orangeColor = Color(0xFFFF7043)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(cardCornerRadiusDp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min) // Ensure children can match height
+                .drawBehind { // Draw the orange line behind the content
+                    val lineThicknessPx = lineThicknessDp.toPx()
+                    val cardCornerRadiusPx = cardCornerRadiusDp.toPx()
+
+                    // Path for the orange rounded line segment on the left
+                    val linePath = Path().apply {
+                        // Start just inside the top-left corner
+                        moveTo(0f, cardCornerRadiusPx)
+                        // Arc for the top-left corner
+                        arcTo(
+                            rect = Rect(
+                                Offset.Zero,
+                                Size(cardCornerRadiusPx * 2, cardCornerRadiusPx * 2)
+                            ),
+                            startAngleDegrees = 180f,
+                            sweepAngleDegrees = 90f,
+                            forceMoveTo = false
+                        )
+                        // Line to the start of the bottom-left corner arc
+                        lineTo(lineThicknessPx, size.height - cardCornerRadiusPx)
+                        // Arc for the bottom-left corner (drawn in reverse)
+                        arcTo(
+                            rect = Rect(
+                                Offset(0f, size.height - cardCornerRadiusPx * 2),
+                                Size(cardCornerRadiusPx * 2, cardCornerRadiusPx * 2)
+                            ),
+                            startAngleDegrees = 90f,
+                            sweepAngleDegrees = 90f,
+                            forceMoveTo = false
+                        )
+                        // Close the path to form a fillable shape for the line
+                        lineTo(
+                            0f,
+                            size.height - cardCornerRadiusPx
+                        ) // Move back to the outer edge for closing
+                        // This part is tricky; let's simplify by drawing a thick rounded stroke instead
+
+                        // Alternative: Draw a rounded rectangle for the line
+                        reset() // Clear previous path commands for this simpler approach
+                        addRoundRect(
+                            RoundRect(
+                                left = 0f,
+                                top = 0f,
+                                right = lineThicknessPx, // Width of the line
+                                bottom = size.height,
+                                topLeftCornerRadius = CornerRadius(cardCornerRadiusPx),
+                                bottomLeftCornerRadius = CornerRadius(cardCornerRadiusPx),
+                                topRightCornerRadius = CornerRadius(0f), // Sharp inner corners
+                                bottomRightCornerRadius = CornerRadius(0f)  // Sharp inner corners
+                            )
+                        )
+                    }
+                    drawPath(
+                        path = linePath,
+                        color = orangeColor
+                    )
+                },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Spacer to push content away from where the line is drawn
+            // No need for a spacer if drawBehind is used correctly and content padding handles it.
+
+            // Main content
+            Row(
+                modifier = Modifier
+                    // Add padding to the start to account for the line's thickness
+                    .padding(
+                        start = lineThicknessDp + 16.dp,
+                        end = 16.dp,
+                        top = 16.dp,
+                        bottom = 16.dp
+                    )
+                    .weight(1f)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = reminder.title, style = MaterialTheme.typography.titleMedium)
+
+                    if (reminder.description.isNotBlank()) {
+                        Text(text = reminder.description, style = MaterialTheme.typography.bodySmall)
+                    }
+
+                    if (reminder.category.isNotBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 6.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFD1C4E9))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = reminder.category,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFF4A148C)
+                            )
+                        }
+                    }
+
+                    val formattedStartTime = remember(reminder.startTime) {
+                        try {
+                            simpleDateFormatter.format(Date(reminder.startTime))
+                        } catch (e: Exception) {
+                            "Invalid start date"
+                        }
+                    }
+                    Text(text = "Starts: $formattedStartTime", style = MaterialTheme.typography.bodySmall)
+
+                    reminder.endTime?.let { endTimeValue ->
+                        val formattedEndTime = remember(endTimeValue) {
+                            try {
+                                simpleDateFormatter.format(Date(endTimeValue))
+                            } catch (e: Exception) {
+                                "Invalid end date"
+                            }
+                        }
+                        Text(text = "Ends: $formattedEndTime", style = MaterialTheme.typography.bodySmall)
+                    }
+
+                    Text(text = "Repeat: ${reminder.repeatMode.name}", style = MaterialTheme.typography.bodySmall)
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { onEdit(reminder) }) {
+                        Icon(Icons.Filled.Edit, contentDescription = "Edit Reminder")
+                    }
+                    IconButton(onClick = { onDelete(reminder) }) {
+                        Icon(Icons.Filled.Delete, contentDescription = "Delete Reminder")
+                    }
+                }
+            }
+        }
+    }
+}
+*/
+
+
+
+
+
+
 
