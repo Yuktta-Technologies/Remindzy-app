@@ -35,6 +35,8 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.ui.unit.DpOffset
 
 
 // Make sure RepeatMode is available if AddReminderDialog from the other file needs it directly,
@@ -352,108 +354,135 @@ fun ReminderItem(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Row(
+        // ⬇️ Outer Box that allows intrinsic height so left bar can match height
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp)) //  Clip the whole row to match card corners
-                .height(IntrinsicSize.Min) //  KEY LINE to force full height for border
+                .height(IntrinsicSize.Min) // 🔸 Ensures orange bar can fill full height
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White)
         ) {
-
-            //  Left vertical colored bar
+            // 🔶 Orange vertical bar
             Box(
                 modifier = Modifier
                     .width(4.dp)
                     .fillMaxHeight()
-                    .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)) //  Rounded corners on left only
+                    .align(Alignment.CenterStart)
+                    .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
                     .background(Color(0xFFFF7043)) // Orange
             )
 
-            //  Main content
-            Row(
+            // ⋮ Overflow menu
+            var menuExpanded by remember { mutableStateOf(false) }
+
+            Box(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .align(Alignment.TopEnd)
+                    .padding(top = 0.dp, end = 2.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = reminder.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF1A1A1A) // dark gray for better contrast
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Menu",
+                        tint = Color.Black, // ✅ Black icon color
+                        modifier = Modifier.size(18.dp)
                     )
+                }
 
-                    if (reminder.description.isNotBlank()) {
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                    offset = DpOffset(x = (-8).dp, y = (-10).dp) // 👈 Adjust here
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Edit") },
+                        onClick = {
+                            menuExpanded = false
+                            onEdit(reminder)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        onClick = {
+                            menuExpanded = false
+                            onDelete(reminder)
+                        }
+                    )
+                }
+            }
+
+            // 📄 Reminder content
+            Column(
+                modifier = Modifier
+                    .padding(start = 16.dp, end = 48.dp, top = 16.dp, bottom = 16.dp)
+            ) {
+                Text(
+                    text = reminder.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color(0xFF1A1A1A)
+                )
+
+                if (reminder.description.isNotBlank()) {
+                    Text(
+                        text = reminder.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF3C3C3C)
+                    )
+                }
+
+                if (reminder.category.isNotBlank()) {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 6.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFFFFECB3))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
                         Text(
-                            text = reminder.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF3C3C3C)
+                            text = reminder.category,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFFE65100)
                         )
                     }
+                }
 
-                    if (reminder.category.isNotBlank()) {
-                        Box(
-                            modifier = Modifier
-                                .padding(top = 6.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFFD1C4E9))
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = reminder.category,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color(0xFF4A148C)
-                            )
-                        }
+                val formattedStartTime = remember(reminder.startTime) {
+                    try {
+                        simpleDateFormatter.format(Date(reminder.startTime))
+                    } catch (e: Exception) {
+                        "Invalid start date"
                     }
+                }
+                Text(
+                    text = "Starts: $formattedStartTime",
+                    style = MaterialTheme.typography.bodySmall
+                )
 
-                    val formattedStartTime = remember(reminder.startTime) {
+                reminder.endTime?.let { endTimeValue ->
+                    val formattedEndTime = remember(endTimeValue) {
                         try {
-                            simpleDateFormatter.format(Date(reminder.startTime))
+                            simpleDateFormatter.format(Date(endTimeValue))
                         } catch (e: Exception) {
-                            "Invalid start date"
+                            "Invalid end date"
                         }
                     }
                     Text(
-                        text = "Starts: $formattedStartTime",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF3C3C3C)
-                    )
-
-                    reminder.endTime?.let { endTimeValue ->
-                        val formattedEndTime = remember(endTimeValue) {
-                            try {
-                                simpleDateFormatter.format(Date(endTimeValue))
-                            } catch (e: Exception) {
-                                "Invalid end date"
-                            }
-                        }
-                        Text(
-                            text = "Ends: $formattedEndTime",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF3C3C3C)
-                        )
-                    }
-
-                    Text(
-                        text = "Repeat: ${reminder.repeatMode.name}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF3C3C3C)
+                        text = "Ends: $formattedEndTime",
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { onEdit(reminder) }) {
-                        Icon(Icons.Filled.Edit, contentDescription = "Edit Reminder")
-                    }
-                    IconButton(onClick = { onDelete(reminder) }) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Delete Reminder")
-                    }
-                }
+                Text(
+                    text = "Repeat: ${reminder.repeatMode.name}",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
 }
+
+
+
 
 
 
