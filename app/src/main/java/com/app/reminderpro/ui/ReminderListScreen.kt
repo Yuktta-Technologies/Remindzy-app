@@ -411,10 +411,34 @@ fun ReminderItem(
                 }
             }
 
+            // 📛 Category tag aligned below the 3-dots menu
+            if (reminder.category.isNotBlank()) {
+                val (bgColor, textColor) = when (reminder.category.lowercase(Locale.getDefault())) {
+                    "personal" -> Pair(Color(0xFFFFEDD5), Color(0xFFCD7C5D)) // Light peach + brown text
+                    else -> Pair(Color(0xFFFFECB3), Color(0xFFE65100))       // Default fallback
+                }
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 45.dp, end = 14.dp) // 👈 adjust as needed to place it under the 3-dots
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(bgColor)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = reminder.category,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = textColor
+                    )
+                }
+            }
+
+
             // 📄 Reminder content
             Column(
                 modifier = Modifier
-                    .padding(start = 16.dp, end = 48.dp, top = 16.dp, bottom = 16.dp)
+                    .padding(start = 16.dp, end = 85.dp, top = 16.dp, bottom = 16.dp)
             ) {
                 Text(
                     text = reminder.title,
@@ -430,21 +454,6 @@ fun ReminderItem(
                     )
                 }
 
-                if (reminder.category.isNotBlank()) {
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 6.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFFFECB3))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = reminder.category,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFFE65100)
-                        )
-                    }
-                }
 
                 val formattedStartTime = remember(reminder.startTime) {
                     try {
