@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -39,7 +40,13 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.material.icons.filled.CalendarToday
-
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import com.app.reminderpro.R
 
 // Make sure RepeatMode is available if AddReminderDialog from the other file needs it directly,
 // though it's passed as a parameter so direct import here might not be strictly needed for this file.
@@ -51,7 +58,70 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+
+
+@Composable
+fun FilterIcon() {
+    Image(
+        painter = painterResource(id = R.drawable.funnel),
+        contentDescription = "Filter Icon",
+        modifier = Modifier.size(24.dp),
+        colorFilter = ColorFilter.tint(Color.White) // Optional: tint to match theme
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class) // Keep if Scaffold, FAB, TopAppBar use experimental APIs
+@Composable
+fun ReminderTopAppBar(
+    selectedCategory: String,
+    onFilterSelected: (String) -> Unit
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    TopAppBar(
+        title = {
+            Text(
+                text = "Remindzy",
+                style = MaterialTheme.typography.titleLarge.copy(color = Color.White)
+            )
+        },
+        actions = {
+            IconButton(onClick = { menuExpanded = true }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.funnel), // 🔁 Replace with your PNG name
+                    contentDescription = "Filter",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false }
+            ) {
+                val categories = listOf("All", "Personal", "Work", "Health", "Finance")
+                categories.forEach { category ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = category,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            onFilterSelected(category)
+                        }
+                    )
+                }
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color(0xFF8E24AA) // Purple
+        )
+    )
+}
+
 @Composable
 fun ReminderListScreen(
     viewModel: ReminderViewModel
@@ -79,18 +149,12 @@ fun ReminderListScreen(
             }
         },
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Remindzy",
-                        color = Color.White
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF8E24AA) // Purple background
-                )
+            ReminderTopAppBar(
+                selectedCategory = selectedCategory,
+                onFilterSelected = { selectedCategory = it }
             )
         }
+
 
     ) { paddingValues ->
         Column(
@@ -99,77 +163,6 @@ fun ReminderListScreen(
                 .background(Color(0xFFF9FAFB))
                 .padding(paddingValues)
         ) {
-
-            //  Category Filter UI - INSERT HERE
-            /*Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Filter by: ",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF1A1A1A), // strong dark gray
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Box {
-                    Button(onClick = { expanded = true }) {
-                        Text(selectedCategory)
-                    }
-                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                        categories.forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text(category) },
-                                onClick = {
-                                    selectedCategory = category
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }*/
-            // 🔄 Replace your current "Category Filter UI" with this:
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = "Filter by:",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color(0xFF1A1A1A), // Dark gray
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    categories.forEach { category ->
-                        AssistChip(
-                            onClick = {
-                                selectedCategory = category
-                            },
-                            label = {
-                                Text(
-                                    text = category,
-                                    color = if (selectedCategory == category) Color.White else Color(0xFF4A148C)
-                                )
-                            },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = if (selectedCategory == category)
-                                    Color(0xFF8E24AA) // Selected = dark purple
-                                else
-                                    Color(0xFFEDE7F6) // Unselected = light purple
-                            )
-                        )
-                    }
-                }
-            }
 
 
             //  Then your filtered list logic follows
@@ -504,10 +497,14 @@ fun ReminderItem(
                 // ⏰ Start time
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp, bottom = 6.dp),
+                    //horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.weight(1F),
+                        verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Filled.Schedule,
                             contentDescription = "Start Time",
@@ -523,8 +520,10 @@ fun ReminderItem(
                     }
 
 
-                    // ⏰🗓 Start time and date in one row
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    // ⏰🗓 Start date
+                    Row(
+                        modifier = Modifier.weight(1F),
+                        verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Filled.CalendarToday,
                             contentDescription = "Start Date",
@@ -559,10 +558,14 @@ fun ReminderItem(
                     // ⏰🗓 End time and date in one row
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp),
+                        //horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            modifier = Modifier.weight(1F),
+                            verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Filled.Schedule,
                                 contentDescription = "End Time",
@@ -578,7 +581,9 @@ fun ReminderItem(
                         }
 
                     // 📅 End date
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            modifier = Modifier.weight(1F),
+                            verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Filled.CalendarToday,
                                 contentDescription = "End Date",

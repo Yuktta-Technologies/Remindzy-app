@@ -15,6 +15,15 @@ and uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+### [1.0.5] - 2025-07-12
+
+- Redesigned ReminderItem card layout:
+  - Added start and end **dates** next to respective **times** with calendar icons.
+  - Ensured both date and time appear in the **same row** for better alignment.
+  - Added **repeat mode badge** under the category tag with light blue background and blue text.
+- Adjusted spacing and alignment to ensure proper layout across devices (emulator and real phones).
+- Finalized UI based on Figma design for the reminder home screen.
+
 ## [1.0.4] - 2025-07-12
 
 ### Added
