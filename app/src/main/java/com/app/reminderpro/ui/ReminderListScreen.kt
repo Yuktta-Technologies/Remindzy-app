@@ -38,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.material.icons.filled.CalendarToday
 
 
 // Make sure RepeatMode is available if AddReminderDialog from the other file needs it directly,
@@ -343,9 +344,6 @@ fun ReminderItem(
     onEdit: (Reminder) -> Unit,
     onDelete: (Reminder) -> Unit
 ) {
-    val simpleDateFormatter = remember {
-        SimpleDateFormat("hh:mm a", Locale.getDefault()) // ⏰ Example: 4:30 PM
-    }
 
     Card(
         modifier = Modifier
@@ -458,6 +456,10 @@ fun ReminderItem(
 
                 val iconColor = Color(0xFF6C6C6C) // Grey
 
+                val simpleDateFormatter = remember {
+                    SimpleDateFormat("hh:mm a", Locale.getDefault()) // ⏰ Example: 4:30 PM
+                }
+
                 val formattedStartTime = remember(reminder.startTime) {
                     try {
                         simpleDateFormatter.format(Date(reminder.startTime))
@@ -465,23 +467,56 @@ fun ReminderItem(
                         "Invalid start time"
                     }
                 }
+
+                val dateFormatter = remember {
+                    SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) // 📅 Format: Jul 12, 2025
+                }
+
+                val formattedStartDate = remember(reminder.startTime) {
+                    try {
+                        dateFormatter.format(Date(reminder.startTime))
+                    } catch (e: Exception) {
+                        "Invalid start date"
+                    }
+                }
+
+                // ⏰ Start time
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                    modifier = Modifier.padding(top = 8.dp, bottom = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Schedule,
-                        contentDescription = "Start Time",
-                        tint = iconColor,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Starts: $formattedStartTime",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF6C6C6C),
-                        //modifier = Modifier.padding(start = 8.dp)
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Filled.Schedule,
+                            contentDescription = "Start Time",
+                            tint = iconColor,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Starts: $formattedStartTime",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = iconColor
+                        )
+                    }
+
+
+                    // ⏰🗓 Start time and date in one row
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Filled.CalendarToday,
+                            contentDescription = "Start Date",
+                            tint = iconColor,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = formattedStartDate,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = iconColor
+                        )
+                    }
                 }
 
                 reminder.endTime?.let { endTimeValue ->
@@ -492,22 +527,50 @@ fun ReminderItem(
                             "Invalid end time"
                         }
                     }
+                    val formattedEndDate = remember(endTimeValue) {
+                        try {
+                            dateFormatter.format(Date(endTimeValue))
+                        } catch (e: Exception) {
+                            "Invalid end date"
+                        }
+                    }
+
+                    // ⏰🗓 End time and date in one row
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier.padding(bottom = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Schedule,
-                            contentDescription = "End Time",
-                            tint = iconColor,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "Ends:   $formattedEndTime",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF6C6C6C)
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Filled.Schedule,
+                                contentDescription = "End Time",
+                                tint = iconColor,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Ends:   $formattedEndTime",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = iconColor
+                            )
+                        }
+
+                    // 📅 End date
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Filled.CalendarToday,
+                                contentDescription = "End Date",
+                                tint = iconColor,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = formattedEndDate,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = iconColor
+                            )
+                        }
                     }
                 }
 

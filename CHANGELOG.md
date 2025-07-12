@@ -15,6 +15,19 @@ and uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.3] - 2025-07-12
+
+### Added
+
+- Displayed start and end times with a clock (`Schedule`) icon on each reminder card.
+- Added start and end dates next to the corresponding times with a calendar icon.
+- Ensured both time and date appear on the same row for a cleaner, compact layout.
+
+### Changed
+
+- Adjusted padding and spacing to align start/end time and date elements neatly.
+- Fine-tuned icon sizes and text alignment for visual consistency.
+
 ## [1.0.2] - 2025-07-12
 
 ### Changed
