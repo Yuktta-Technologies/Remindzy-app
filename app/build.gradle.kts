@@ -72,6 +72,9 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.lifecycle.viewmodel.compose) // Or the latest version
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
+    implementation("androidx.compose.material:material-icons-extended")
+
+
 
 
 }

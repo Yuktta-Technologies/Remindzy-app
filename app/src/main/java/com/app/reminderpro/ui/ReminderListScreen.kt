@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -343,7 +344,7 @@ fun ReminderItem(
     onDelete: (Reminder) -> Unit
 ) {
     val simpleDateFormatter = remember {
-        SimpleDateFormat("EEE, MMM d, yyyy 'at' h:mm a", Locale.getDefault())
+        SimpleDateFormat("hh:mm a", Locale.getDefault()) // ⏰ Example: 4:30 PM
     }
 
     Card(
@@ -455,31 +456,61 @@ fun ReminderItem(
                 }
 
 
+                val iconColor = Color(0xFF6C6C6C) // Grey
+
                 val formattedStartTime = remember(reminder.startTime) {
                     try {
                         simpleDateFormatter.format(Date(reminder.startTime))
                     } catch (e: Exception) {
-                        "Invalid start date"
+                        "Invalid start time"
                     }
                 }
-                Text(
-                    text = "Starts: $formattedStartTime",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Schedule,
+                        contentDescription = "Start Time",
+                        tint = iconColor,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Starts: $formattedStartTime",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF6C6C6C),
+                        //modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
 
                 reminder.endTime?.let { endTimeValue ->
                     val formattedEndTime = remember(endTimeValue) {
                         try {
                             simpleDateFormatter.format(Date(endTimeValue))
                         } catch (e: Exception) {
-                            "Invalid end date"
+                            "Invalid end time"
                         }
                     }
-                    Text(
-                        text = "Ends: $formattedEndTime",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Schedule,
+                            contentDescription = "End Time",
+                            tint = iconColor,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Ends:   $formattedEndTime",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF6C6C6C)
+                        )
+                    }
                 }
+
 
                 Text(
                     text = "Repeat: ${reminder.repeatMode.name}",
