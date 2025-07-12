@@ -15,6 +15,20 @@ and uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.4] - 2025-07-12
+
+### Added
+
+- Added a **repeat mode badge** (e.g., "Daily", "Weekly", "Monthly") below the category tag on each reminder card.
+- Styled the repeat badge with:
+  - Background color: `#DBEAFE`
+  - Text color: `#5C7FCC`
+  - Rounded corners and compact padding.
+
+### Changed
+
+- Aligned the repeat badge precisely under the category tag using `padding(top = 78.dp, end = 14.dp)`.
+
 ## [1.0.3] - 2025-07-12
 
 ### Added

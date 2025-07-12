@@ -420,7 +420,7 @@ fun ReminderItem(
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = 45.dp, end = 14.dp) // 👈 adjust as needed to place it under the 3-dots
+                        .padding(top = 46.dp, end = 14.dp) // 👈 adjust as needed to place it under the 3-dots
                         .clip(RoundedCornerShape(12.dp))
                         .background(bgColor)
                         .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -433,6 +433,25 @@ fun ReminderItem(
                 }
             }
 
+            // 🔁 Repeat Mode Stamp
+            if (reminder.repeatMode.name != "NONE") {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 85.dp, end = 14.dp, bottom = 10.dp) // 👈 Adjust vertical spacing to sit under category
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(Color(0xFFDBEAFE)) // Light blue background
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = reminder.repeatMode.name.lowercase().replaceFirstChar { it.uppercase() }, // e.g., "Daily"
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF5C7FCC)
+                    )
+                }
+            }
+
+
 
             // 📄 Reminder content
             Column(
@@ -442,14 +461,16 @@ fun ReminderItem(
                 Text(
                     text = reminder.title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFF1A1A1A)
+                    color = Color(0xFF1A1A1A),
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
 
                 if (reminder.description.isNotBlank()) {
                     Text(
                         text = reminder.description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF3C3C3C)
+                        color = Color(0xFF3C3C3C),
+                        modifier = Modifier.padding(bottom = 5.dp)
                     )
                 }
 
@@ -573,12 +594,6 @@ fun ReminderItem(
                         }
                     }
                 }
-
-
-                Text(
-                    text = "Repeat: ${reminder.repeatMode.name}",
-                    style = MaterialTheme.typography.bodySmall
-                )
             }
         }
     }
