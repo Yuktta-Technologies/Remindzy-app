@@ -406,10 +406,8 @@ fun ReminderItem(
 
             // 📛 Category tag aligned below the 3-dots menu
             if (reminder.category.isNotBlank()) {
-                val (bgColor, textColor) = when (reminder.category.lowercase(Locale.getDefault())) {
-                    "personal" -> Pair(Color(0xFFFFEDD5), Color(0xFFCD7C5D)) // Light peach + brown text
-                    else -> Pair(Color(0xFFFFECB3), Color(0xFFE65100))       // Default fallback
-                }
+                val bgColor = getCategoryColor(reminder.category)
+                val textColor = getCategoryTextColor(reminder.category)
 
                 Box(
                     modifier = Modifier

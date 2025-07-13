@@ -15,7 +15,33 @@ and uses [Semantic Versioning](https://semver.org/).
 
 ---
 
-### [1.0.6] - 2025-07-13
+## [1.0.7] - 2025-07-13
+
+- Worked on the ReminderListScreen.kt file
+
+### [Added]
+
+- Integrated `getCategoryColor()` and `getCategoryTextColor()` from `CategoryUtils.kt` into the reminder card display in `ReminderListScreen.kt` to dynamically style the category tag.
+
+### [Changed]
+
+- **Finance category colors updated** in `CategoryUtils.kt`:
+
+  - Background: `#FFF9C4` → `#D7CCC8` (Soft Brown-Grey)
+  - Text: `#F57F17` → `#4E342E` (Deep Brown)
+
+- In `ReminderListScreen.kt`:
+
+  - Replaced hardcoded color pairs with function-based values:
+
+    ```kotlin
+    val bgColor = getCategoryColor(reminder.category)
+    val textColor = getCategoryTextColor(reminder.category)
+    ```
+
+  - This change ensures consistent and scalable category styling across the UI.
+
+## [1.0.6] - 2025-07-13
 
 - Worked on the AddReminderDialog.kt file
 
@@ -33,7 +59,7 @@ and uses [Semantic Versioning](https://semver.org/).
 - Updated Room database schema to handle the new `category` column.
 - Updated related DAO, repository, and database migration logic to support the new category field.
 
-### [1.0.6] - 2025-07-13
+## [1.0.6] - 2025-07-13
 
 - Worked on the AddReminderDialog.kt file
 

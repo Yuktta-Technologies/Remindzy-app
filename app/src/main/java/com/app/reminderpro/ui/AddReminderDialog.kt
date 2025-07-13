@@ -102,7 +102,7 @@ fun AddReminderDialog(
 
 
     var repeatMode by remember { mutableStateOf(reminderToEdit?.repeatMode ?: RepeatMode.ONCE) }
-    val categoryOptions = listOf("Personal", "Work", "Health", "Study", "Others")
+    val categoryOptions = listOf("Personal", "Work", "Health", "Finance", "Others")
     var selectedCategory by remember { mutableStateOf("Personal") }
 
 
