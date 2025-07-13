@@ -25,6 +25,8 @@ import java.util.Locale
 import android.content.Context
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.pointer.pointerInput
@@ -103,7 +105,7 @@ fun AddReminderDialog(
 
     var repeatMode by remember { mutableStateOf(reminderToEdit?.repeatMode ?: RepeatMode.ONCE) }
     val categoryOptions = listOf("Personal", "Work", "Health", "Finance", "Others")
-    var selectedCategory by remember { mutableStateOf("Personal") }
+    var selectedCategory by remember { mutableStateOf(reminderToEdit?.category ?: "Personal") }
 
 
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
@@ -199,6 +201,7 @@ fun AddReminderDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
+                    .heightIn(max = 500.dp) // ✅ Limits the dialog height
             )
             {
             Box(
@@ -217,6 +220,7 @@ fun AddReminderDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(0.dp)
+                        .verticalScroll(rememberScrollState())
                     ) {
                     OutlinedTextField(
                         value = title,
@@ -436,18 +440,6 @@ fun AddReminderDialog(
                                     )
                                 }
                             }
-
-                            // Optional: Button to clear the end time if it's enabled
-//                        if (endCalendar != null) {
-//                            IconButton(onClick = {
-//                                endCalendar = null
-//                                // Optionally, also set isEndTimeEnabled = false here,
-//                                // or let the user explicitly toggle the switch.
-//                                // For now, just clears the date, user has to toggle switch to truly disable.
-//                            }) {
-//                                Icon(Icons.Filled.Clear, contentDescription = "Clear End Time")
-//                            }
-//                        }
                         }
                     }
 
@@ -458,7 +450,7 @@ fun AddReminderDialog(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         DropdownMenuBox(
-                            label = "Repeat",
+                            label = "Repeat:",
                             options = RepeatMode.entries.toList(),
                             selected = repeatMode,
                             onSelected = { repeatMode = it },
@@ -466,7 +458,7 @@ fun AddReminderDialog(
                         )
 
                         DropdownMenuBox(
-                            label = "Category",
+                            label = "Category:",
                             options = categoryOptions,
                             selected = selectedCategory,
                             onSelected = { selectedCategory = it },
@@ -480,36 +472,7 @@ fun AddReminderDialog(
     )
 }
 
-//dropdown menu code
-/*
-@Composable
-fun DropdownMenuBox( // This remains the same as your provided code
-    selected: RepeatMode,
-    onSelected: (RepeatMode) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        OutlinedButton(onClick = { expanded = true }) {
-            Text(
-                "Repeat: ${selected.name}",
-                //style = MaterialTheme.typography.labelMedium,
-                color = Color(0xFF1A1A1A)
-            )
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            RepeatMode.entries.forEach {
-                DropdownMenuItem(
-                    text = { Text(it.name) },
-                    onClick = {
-                        onSelected(it)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
-*/
+
 
 @Composable
 fun <T> DropdownMenuBox(
@@ -522,14 +485,27 @@ fun <T> DropdownMenuBox(
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
-        OutlinedButton(
-            onClick = { expanded = true },
-            shape = RoundedCornerShape(10.dp)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                "$label: ${selected.toString()}",
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF1A1A1A)
             )
+
+            OutlinedButton(
+                onClick = { expanded = true },
+                shape = RoundedCornerShape(10.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    selected.toString(),
+                    color = Color(0xFF1A1A1A),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
 
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {

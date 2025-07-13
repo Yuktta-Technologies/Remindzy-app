@@ -15,6 +15,25 @@ and uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.8] - 2025-07-13
+
+- Worked on the AddReminderDialog.kt file
+
+### Added
+
+- Heading labels above the `Repeat` and `Category` dropdowns:
+  - "Repeat:" and "Category:" now appear as separate text elements above their respective buttons.
+
+### Changed
+
+- `DropdownMenuBox` layout adjusted:
+  - Previously used buttons with embedded labels; now uses separate heading labels for better clarity and visual structure.
+- Maintained original dialog box height and layout by reverting padding and spacing tweaks that caused unwanted vertical expansion.
+
+### Fixed
+
+- Editing a reminder now correctly loads its previously selected `category` value instead of defaulting to "Personal".
+
 ## [1.0.7] - 2025-07-13
 
 - Worked on the ReminderListScreen.kt file
