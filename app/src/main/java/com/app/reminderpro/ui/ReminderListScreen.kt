@@ -47,6 +47,11 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.app.reminderpro.R
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.compose.ui.platform.LocalView
+import android.app.Activity
 
 // Make sure RepeatMode is available if AddReminderDialog from the other file needs it directly,
 // though it's passed as a parameter so direct import here might not be strictly needed for this file.
@@ -134,6 +139,19 @@ fun ReminderListScreen(
     var selectedCategory by remember { mutableStateOf("All") }
     val categories = listOf("All", "Personal", "Work", "Health", "Finance")
     var expanded by remember { mutableStateOf(false) }
+
+    val view = LocalView.current
+    val activity = view.context as Activity
+
+    SideEffect {
+        val window = activity.window
+        // Set the status bar color to your desired purple
+        window.statusBarColor = Color(0xFF8E24AA).toArgb()
+
+        // Make sure the icons in the status bar are white (not black)
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+    }
+
 
     Scaffold(
         floatingActionButton = {

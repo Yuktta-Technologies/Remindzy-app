@@ -15,6 +15,23 @@ and uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.9] - 2025-07-13
+
+- Worked on the ReminderListScreen.kt file
+
+### Added
+
+- **Status Bar Customization**:
+  - Implemented `SideEffect` with `rememberSystemUiController` to:
+    - Set the status bar color to `#8E24AA` (purple)
+    - Ensure status bar icons are light for proper contrast
+
+### Changed
+
+- Removed `padding(WindowInsets.statusBars.asPaddingValues())` from `Scaffold` to:
+  - Prevent unwanted top spacing
+  - Maintain consistent toolbar height across devices
+
 ## [1.0.8] - 2025-07-13
 
 - Worked on the AddReminderDialog.kt file

@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 // import androidx.compose.ui.semantics.dismiss // Not used in this snippet
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import com.app.reminderpro.alarm.ReminderScheduler
 import com.app.reminderpro.model.ReminderDatabase
 import com.app.reminderpro.model.ReminderRepository
@@ -65,6 +66,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         requestPostNotificationsPermission()
 
         setContent {
