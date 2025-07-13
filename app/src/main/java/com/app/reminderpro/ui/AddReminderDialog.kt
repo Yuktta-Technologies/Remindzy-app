@@ -3,7 +3,9 @@ package com.app.reminderpro.ui
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.*
@@ -14,11 +16,52 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import com.app.reminderpro.model.RepeatMode
 import com.app.reminderpro.model.Reminder
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import android.content.Context
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+
+
+fun showDatePicker(context: Context, calendar: Calendar, onDateSelected: (Calendar) -> Unit) {
+    val tempCalendar = calendar.clone() as Calendar
+    DatePickerDialog(
+        context,
+        { _, year, month, day ->
+            tempCalendar.set(Calendar.YEAR, year)
+            tempCalendar.set(Calendar.MONTH, month)
+            tempCalendar.set(Calendar.DAY_OF_MONTH, day)
+            onDateSelected(tempCalendar)
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    ).show()
+}
+
+fun showTimePicker(context: Context, calendar: Calendar, onTimeSelected: (Calendar) -> Unit) {
+    val tempCalendar = calendar.clone() as Calendar
+    TimePickerDialog(
+        context,
+        { _, hour, minute ->
+            tempCalendar.set(Calendar.HOUR_OF_DAY, hour)
+            tempCalendar.set(Calendar.MINUTE, minute)
+            onTimeSelected(tempCalendar)
+        },
+        calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE),
+        false
+    ).show()
+}
+
 
 //@OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,7 +103,7 @@ fun AddReminderDialog(
 
     var repeatMode by remember { mutableStateOf(reminderToEdit?.repeatMode ?: RepeatMode.ONCE) }
 
-    val dateFormatter = remember { SimpleDateFormat("EEE, MMM d, yyyy", Locale.getDefault()) }
+    val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val timeFormatter = remember { SimpleDateFormat("h:mm a", Locale.getDefault()) }
 
     fun showDateTimePicker(
@@ -94,8 +137,14 @@ fun AddReminderDialog(
     }
 
 
+    @OptIn(ExperimentalComposeUiApi::class)
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = Color(0xFFFAFAFA),
         confirmButton = {
             Button(onClick = {
                 if (title.isBlank()) { // Description can be blank
@@ -117,105 +166,291 @@ fun AddReminderDialog(
 
                 onSave(title, description, finalStartTimeMillis, finalEndTimeMillis, repeatMode)
                 // onDismiss() // Call onDismiss from the onSave lambda in ReminderListScreen
-            }) {
+            },
+                    colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF9333EA),
+                contentColor = Color.White // White text
+            ),
+            shape = RoundedCornerShape(50) // Capsule shape
+            ) {
                 Text(if (reminderToEdit != null) "Update" else "Save")
             }
         },
         dismissButton = {
             OutlinedButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(
+                    "Cancel",
+                    color = Color(0xFF1A1A1A),
+                    )
             }
         },
         title = {
-            Text(if (reminderToEdit != null) "Edit Reminder" else "Add Reminder")
+            Text(
+                text = if (reminderToEdit != null) "Edit Reminder" else "Add Reminder",
+                color = Color(0xFF1A1A1A),
+                style = MaterialTheme.typography.titleLarge // or any custom text style
+            )
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Title") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description (Optional)") },
-                    modifier = Modifier.fillMaxWidth()
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+            )
+            {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = {
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                        })
+                    }
                 )
 
-                // Start Time Picker
-                Text("Start Time:", style = MaterialTheme.typography.labelMedium)
-                Button(
-                    onClick = {
-                        showDateTimePicker(startCalendar) { updatedCal ->
-                            startCalendar = updatedCal
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("${dateFormatter.format(startCalendar.time)} at ${timeFormatter.format(startCalendar.time)}")
-                }
-
-                // End Time Picker Section
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Enable End Time:", style = MaterialTheme.typography.labelMedium)
-                    Switch(
-                        checked = isEndTimeEnabled,
-                        onCheckedChange = {
-                            isEndTimeEnabled = it
-                            if (it && endCalendar == null) {
-                                // If enabling and endCalendar is null, set a default
-                                // (e.g., 1 hour after start time)
-                                endCalendar = (startCalendar.clone() as Calendar).apply {
-                                    add(Calendar.HOUR_OF_DAY, 1)
-                                }
-                            } else if (!it) {
-                                endCalendar = null // Clear end time when disabled
-                            }
-                        }
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp)
+                    ) {
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = { Text("Title") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedLabelColor = Color(0xFF9333EA),
+                            unfocusedLabelColor = Color(0xFF999999),    // Light grey when not focused
+                            focusedTextColor = Color.Black,            // Text color when typing
+                            unfocusedTextColor = Color.Black,           // Text color when not focused
+                            focusedBorderColor = Color(0xFF9333EA),
+                            unfocusedBorderColor = Color.Gray,        // Gray when not focused
+                            cursorColor = Color.Black,
+                        )
                     )
-                }
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Description (Optional)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedLabelColor = Color(0xFF9333EA),
+                            unfocusedLabelColor = Color(0xFF999999),    // Light grey when not focused
+                            focusedTextColor = Color.Black,            // Text color when typing
+                            unfocusedTextColor = Color.Black,           // Text color when not focused
+                            focusedBorderColor = Color(0xFF9333EA),
+                            unfocusedBorderColor = Color.Gray,        // Gray when not focused
+                            cursorColor = Color.Black,
+                        )
+                    )
 
-                if (isEndTimeEnabled) {
-                    Text("End Time:", style = MaterialTheme.typography.labelMedium)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Button(
+                    // --- Start Date and Time ---
+                    Text(
+                        "Start Time:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color(0xFF1A1A1A),
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // 📅 Start Date Button
+                        OutlinedButton(
                             onClick = {
-                                // Default to 1 hour after start if endCalendar is still null
-                                val currentEndForPicker = endCalendar ?: (startCalendar.clone() as Calendar).apply { add(Calendar.HOUR_OF_DAY, 1) }
-                                showDateTimePicker(currentEndForPicker) { updatedCal ->
-                                    endCalendar = updatedCal
-                                }
+                                val tempCal = startCalendar.clone() as Calendar
+                                DatePickerDialog(
+                                    context,
+                                    { _, year, month, dayOfMonth ->
+                                        val updatedCal = tempCal.apply {
+                                            set(Calendar.YEAR, year)
+                                            set(Calendar.MONTH, month)
+                                            set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                                        }
+                                        startCalendar = updatedCal
+                                    },
+                                    startCalendar.get(Calendar.YEAR),
+                                    startCalendar.get(Calendar.MONTH),
+                                    startCalendar.get(Calendar.DAY_OF_MONTH)
+                                ).show()
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp)
                         ) {
                             Text(
-                                if (endCalendar != null) "${dateFormatter.format(endCalendar!!.time)} at ${timeFormatter.format(endCalendar!!.time)}"
-                                else "Pick End Time"
+                                text = dateFormatter.format(startCalendar.time),
+                                color = Color(0xFF1A1A1A)
                             )
                         }
-                        // Optional: Button to clear the end time if it's enabled
-                        if (endCalendar != null) {
-                            IconButton(onClick = {
-                                endCalendar = null
-                                // Optionally, also set isEndTimeEnabled = false here,
-                                // or let the user explicitly toggle the switch.
-                                // For now, just clears the date, user has to toggle switch to truly disable.
-                            }) {
-                                Icon(Icons.Filled.Clear, contentDescription = "Clear End Time")
-                            }
+
+                        // ⏰ Start Time Button
+                        OutlinedButton(
+                            onClick = {
+                                val tempCal = startCalendar.clone() as Calendar
+                                TimePickerDialog(
+                                    context,
+                                    { _, hour, minute ->
+                                        val updatedCal = tempCal.apply {
+                                            set(Calendar.HOUR_OF_DAY, hour)
+                                            set(Calendar.MINUTE, minute)
+                                        }
+                                        startCalendar = updatedCal
+                                    },
+                                    startCalendar.get(Calendar.HOUR_OF_DAY),
+                                    startCalendar.get(Calendar.MINUTE),
+                                    false
+                                ).show()
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text(
+                                text = timeFormatter.format(startCalendar.time),
+                                color = Color(0xFF1A1A1A)
+                            )
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(8.dp))
-                DropdownMenuBox(selected = repeatMode, onSelected = { repeatMode = it })
+
+                    // End Time Picker Section
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            "Enable End Time:",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color(0xFF1A1A1A),
+                        )
+                        Switch(
+                            checked = isEndTimeEnabled,
+                            onCheckedChange = {
+                                isEndTimeEnabled = it
+                                if (it && endCalendar == null) {
+                                    // If enabling and endCalendar is null, set a default
+                                    // (e.g., 1 hour after start time)
+                                    endCalendar = (startCalendar.clone() as Calendar).apply {
+                                        add(Calendar.HOUR_OF_DAY, 1)
+                                    }
+                                } else if (!it) {
+                                    endCalendar = null // Clear end time when disabled
+                                }
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color(0xFF6A1B9A),     // Purple thumb
+                                checkedTrackColor = Color(0xFFCE93D8),     // Light purple track
+                                uncheckedThumbColor = Color.Gray,
+                                uncheckedTrackColor = Color.LightGray
+                            )
+                        )
+                    }
+
+                    if (isEndTimeEnabled) {
+                        Text(
+                            "End Time:",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color(0xFF1A1A1A),
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                OutlinedButton(
+                                    onClick = {
+                                        val tempCal = endCalendar
+                                            ?: (startCalendar.clone() as Calendar).apply {
+                                                add(
+                                                    Calendar.HOUR_OF_DAY,
+                                                    1
+                                                )
+                                            }
+                                        DatePickerDialog(
+                                            context,
+                                            { _, year, month, dayOfMonth ->
+                                                val updatedCal = tempCal.apply {
+                                                    set(Calendar.YEAR, year)
+                                                    set(Calendar.MONTH, month)
+                                                    set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                                                }
+                                                endCalendar = updatedCal
+                                            },
+                                            tempCal.get(Calendar.YEAR),
+                                            tempCal.get(Calendar.MONTH),
+                                            tempCal.get(Calendar.DAY_OF_MONTH)
+                                        ).show()
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Text(
+                                        if (endCalendar != null) dateFormatter.format(endCalendar!!.time) else "Pick Date",
+                                        color = Color(0xFF1A1A1A)
+                                    )
+                                }
+
+                                OutlinedButton(
+                                    onClick = {
+                                        val tempCal = endCalendar
+                                            ?: (startCalendar.clone() as Calendar).apply {
+                                                add(
+                                                    Calendar.HOUR_OF_DAY,
+                                                    1
+                                                )
+                                            }
+                                        TimePickerDialog(
+                                            context,
+                                            { _, hour, minute ->
+                                                val newCal = (tempCal.clone() as Calendar).apply {
+                                                    set(Calendar.HOUR_OF_DAY, hour)
+                                                    set(Calendar.MINUTE, minute)
+                                                }
+                                                endCalendar = newCal
+
+                                            },
+                                            tempCal.get(Calendar.HOUR_OF_DAY),
+                                            tempCal.get(Calendar.MINUTE),
+                                            false
+                                        ).show()
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Text(
+                                        if (endCalendar != null) timeFormatter.format(endCalendar!!.time) else "Pick Time",
+                                        color = Color(0xFF1A1A1A)
+                                    )
+                                }
+                            }
+
+                            // Optional: Button to clear the end time if it's enabled
+//                        if (endCalendar != null) {
+//                            IconButton(onClick = {
+//                                endCalendar = null
+//                                // Optionally, also set isEndTimeEnabled = false here,
+//                                // or let the user explicitly toggle the switch.
+//                                // For now, just clears the date, user has to toggle switch to truly disable.
+//                            }) {
+//                                Icon(Icons.Filled.Clear, contentDescription = "Clear End Time")
+//                            }
+//                        }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    DropdownMenuBox(selected = repeatMode, onSelected = { repeatMode = it })
+                }
             }
         }
     )
@@ -229,7 +464,11 @@ fun DropdownMenuBox( // This remains the same as your provided code
     var expanded by remember { mutableStateOf(false) }
     Box {
         OutlinedButton(onClick = { expanded = true }) {
-            Text("Repeat: ${selected.name}")
+            Text(
+                "Repeat: ${selected.name}",
+                //style = MaterialTheme.typography.labelMedium,
+                color = Color(0xFF1A1A1A)
+            )
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             RepeatMode.entries.forEach {

@@ -15,7 +15,41 @@ and uses [Semantic Versioning](https://semver.org/).
 
 ---
 
-### [1.0.5] - 2025-07-12
+### [1.0.6] - 2025-07-13
+
+- Worked on the AddReminderDialog.kt file
+
+### Added
+
+- Separate **Start Date** and **Start Time** buttons instead of a combined picker.
+- Separate **End Date** and **End Time** buttons for better clarity.
+- **Rounded corner customization** (`10dp`) for `OutlinedTextField`s and buttons.
+- Custom **Switch color**:
+  - Purple thumb when enabled
+  - Light purple track
+- Date and time formatting using:
+  - `dd/MM/yyyy` for date
+  - `h:mm a` for time
+
+### Changed
+
+- **Start Time button** now correctly shows time instead of date.
+- Modified **end time updating logic**:
+  - Reassigns `Calendar` instance directly
+  - Ensures immediate UI update on time selection
+- Updated **OutlinedTextField** styling:
+  - Label colors for focused and unfocused states
+  - Text color is now black in both states
+  - Cursor color is black
+- Customized **Save button**:
+  - Purple background (`#6600EB`)
+  - Capsule shape with `RoundedCornerShape(50)`
+- Customized **Cancel button**:
+  - Text color set to dark (`#1A1A1A`)
+- Dialog **Title** styling:
+  - Uses dark color and `titleLarge` typography
+
+## [1.0.5] - 2025-07-12
 
 - Redesigned ReminderItem card layout:
   - Added start and end **dates** next to respective **times** with calendar icons.
