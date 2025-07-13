@@ -15,6 +15,14 @@ and uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.10] - 2025-07-13
+
+- Worked on the ReminderListScreen.kt file
+
+### Changed
+
+- Updated the left vertical bar color in `ReminderItem` to use the category's **text color** (from `getCategoryTextColor`) instead of the background color for better visual consistency with the category tag.
+
 ## [1.0.9] - 2025-07-13
 
 - Worked on the ReminderListScreen.kt file

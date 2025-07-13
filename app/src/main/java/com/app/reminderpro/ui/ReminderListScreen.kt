@@ -357,6 +357,8 @@ fun ReminderItem(
     onDelete: (Reminder) -> Unit
 ) {
 
+    val barColor = getCategoryColor(reminder.category)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -380,7 +382,7 @@ fun ReminderItem(
                     .fillMaxHeight()
                     .align(Alignment.CenterStart)
                     .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
-                    .background(Color(0xFFFF7043)) // Orange
+                    .background(barColor)
             )
 
             // ⋮ Overflow menu
