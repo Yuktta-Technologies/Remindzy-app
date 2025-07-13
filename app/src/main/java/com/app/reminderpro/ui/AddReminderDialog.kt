@@ -69,7 +69,7 @@ fun AddReminderDialog(
     reminderToEdit: Reminder? = null,
     onDismiss: () -> Unit,
     // VITAL CHANGE: 'end' parameter is now Long? (nullable)
-    onSave: (title: String, desc: String, start: Long, end: Long?, repeat: RepeatMode) -> Unit
+    onSave: (title: String, desc: String, start: Long, end: Long?, repeat: RepeatMode, category: String) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -102,6 +102,9 @@ fun AddReminderDialog(
 
 
     var repeatMode by remember { mutableStateOf(reminderToEdit?.repeatMode ?: RepeatMode.ONCE) }
+    val categoryOptions = listOf("Personal", "Work", "Health", "Study", "Others")
+    var selectedCategory by remember { mutableStateOf("Personal") }
+
 
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val timeFormatter = remember { SimpleDateFormat("h:mm a", Locale.getDefault()) }
@@ -164,7 +167,7 @@ fun AddReminderDialog(
                     return@Button
                 }
 
-                onSave(title, description, finalStartTimeMillis, finalEndTimeMillis, repeatMode)
+                onSave(title, description, finalStartTimeMillis, finalEndTimeMillis, repeatMode, selectedCategory)
                 // onDismiss() // Call onDismiss from the onSave lambda in ReminderListScreen
             },
                     colors = ButtonDefaults.buttonColors(
@@ -449,13 +452,36 @@ fun AddReminderDialog(
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
-                    DropdownMenuBox(selected = repeatMode, onSelected = { repeatMode = it })
+                    //DropdownMenuBox(selected = repeatMode, onSelected = { repeatMode = it })
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        DropdownMenuBox(
+                            label = "Repeat",
+                            options = RepeatMode.entries.toList(),
+                            selected = repeatMode,
+                            onSelected = { repeatMode = it },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        DropdownMenuBox(
+                            label = "Category",
+                            options = categoryOptions,
+                            selected = selectedCategory,
+                            onSelected = { selectedCategory = it },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
                 }
             }
         }
     )
 }
 
+//dropdown menu code
+/*
 @Composable
 fun DropdownMenuBox( // This remains the same as your provided code
     selected: RepeatMode,
@@ -476,6 +502,42 @@ fun DropdownMenuBox( // This remains the same as your provided code
                     text = { Text(it.name) },
                     onClick = {
                         onSelected(it)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+*/
+
+@Composable
+fun <T> DropdownMenuBox(
+    label: String,
+    options: List<T>,
+    selected: T,
+    onSelected: (T) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = modifier) {
+        OutlinedButton(
+            onClick = { expanded = true },
+            shape = RoundedCornerShape(10.dp)
+        ) {
+            Text(
+                "$label: ${selected.toString()}",
+                color = Color(0xFF1A1A1A)
+            )
+        }
+
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { item ->
+                DropdownMenuItem(
+                    text = { Text(item.toString()) },
+                    onClick = {
+                        onSelected(item)
                         expanded = false
                     }
                 )

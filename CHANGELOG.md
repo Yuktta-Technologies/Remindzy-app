@@ -19,6 +19,24 @@ and uses [Semantic Versioning](https://semver.org/).
 
 - Worked on the AddReminderDialog.kt file
 
+### [Added]
+
+- Category selection feature in `AddReminderDialog.kt`.
+- New `CategoryDropdownMenuBox` composable for selecting categories.
+- Category enum class `ReminderCategory` with values like `Personal`, `Work`, and `Health`.
+
+### [Changed]
+
+- UI layout updated in `AddReminderDialog.kt` to place category dropdown next to repeat option.
+- Extended the `onSave` callback to include a category parameter.
+- Updated `Reminder.kt` data model to include a `category: ReminderCategory` field.
+- Updated Room database schema to handle the new `category` column.
+- Updated related DAO, repository, and database migration logic to support the new category field.
+
+### [1.0.6] - 2025-07-13
+
+- Worked on the AddReminderDialog.kt file
+
 ### Added
 
 - Separate **Start Date** and **Start Time** buttons instead of a combined picker.

@@ -237,9 +237,9 @@ fun ReminderListScreen(
                 onDismiss = { showDialog = false },
                 // The onSave lambda matches the signature required by the updated AddReminderDialog
                 // (title: String, desc: String, start: Long, end: Long?, repeat: RepeatMode)
-                onSave = { title, description, startTime, endTime, repeatMode ->
+                onSave = { title, description, startTime, endTime, repeatMode, category ->
                     if (reminderToEdit == null) {
-                        viewModel.insertReminder(title, description, startTime, endTime, repeatMode)
+                        viewModel.insertReminder(title, description, startTime, endTime, repeatMode, category)
                     } else {
                         reminderToEdit?.let { currentReminder ->
                             val updatedReminder = currentReminder.copy(
@@ -247,7 +247,8 @@ fun ReminderListScreen(
                                 description = description,
                                 startTime = startTime,
                                 endTime = endTime,
-                                repeatMode = repeatMode
+                                repeatMode = repeatMode,
+                                category = category
                             )
                             viewModel.updateReminder(updatedReminder)
                         }
